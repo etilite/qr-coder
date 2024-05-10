@@ -13,30 +13,36 @@ type QRCodeHandler struct {
 }
 
 func (h *QRCodeHandler) handle() http.HandlerFunc {
-	return func(writer http.ResponseWriter, request *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if err := r.Body.Close(); err != nil {
+				log.Printf("failed to close request body %v", err)
+			}
+		}()
+
 		qrCode := coder.QRCode{}
-		err := json.NewDecoder(request.Body).Decode(&qrCode)
 
-		//writer.Header().Set("Content-Type", "application/json")
-
-		if err != nil {
+		if err := json.NewDecoder(r.Body).Decode(&qrCode); err != nil {
 			err = fmt.Errorf("failed to decode JSON: %w", err)
 			log.Print(err)
-			http.Error(writer, err.Error(), http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		//var image []byte
 		image, err := qrCode.Generate()
 		if err != nil {
-			writer.WriteHeader(400)
-			json.NewEncoder(writer).Encode(
-				fmt.Sprintf("Could not generate QR code. %v", err),
-			)
+			err = fmt.Errorf("failed to generate QR-code: %w", err)
+			log.Print(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		writer.Header().Set("Content-Type", "image/png")
-		writer.Write(image)
+		w.Header().Set("Content-Type", "image/png")
+		if _, err := w.Write(image); err != nil {
+			err = fmt.Errorf("failed to decode JSON: %w", err)
+			log.Print(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 }
