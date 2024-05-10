@@ -33,7 +33,7 @@ func (code *QRCode) Validate() error {
 	if code.Content == "" {
 		return fmt.Errorf("content is empty")
 	}
-	if code.Size <= minSize || code.Size > maxSize {
+	if code.Size < minSize || code.Size > maxSize {
 		return fmt.Errorf("invalid size: %d, must be greater than %d and less than %d", code.Size, minSize, maxSize)
 	}
 	return nil
