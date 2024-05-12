@@ -3,70 +3,75 @@ package coder
 import (
 	"testing"
 
+	"github.com/etilite/qr-coder/internal/model"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestQRCode_ValidateSuccess(t *testing.T) {
+func TestQRCode_Generate(t *testing.T) {
 	t.Parallel()
 
-	code := &QRCode{
-		Content: "test",
-		Size:    32,
-	}
+	t.Run("success", func(t *testing.T) {
+		t.Parallel()
 
-	err := code.Validate()
-	assert.NoError(t, err)
+		code := model.QRCode{
+			Content: "test",
+			Size:    32,
+		}
+
+		got, err := Encode(code)
+
+		assert.NoError(t, err)
+		assert.NotEmpty(t, got)
+	})
+
+	t.Run("encode error", func(t *testing.T) {
+		t.Parallel()
+
+		code := model.QRCode{
+			Content: tooBigContent,
+			Size:    32,
+		}
+
+		got, err := Encode(code)
+
+		assert.Error(t, err)
+		assert.Empty(t, got)
+	})
 }
 
-func TestQRCode_ValidateErr(t *testing.T) {
-	t.Parallel()
-
-	type fields struct {
-		content string
-		size    int
-	}
-	tests := map[string]struct {
-		fields fields
-		want   string
-	}{
-		"empty content": {
-			fields: fields{
-				content: "",
-				size:    32,
-			},
-			want: "content is empty",
-		},
-		"size is small": {
-			fields: fields{
-				content: "test",
-				size:    -1,
-			},
-			want: "invalid size: -1, must be greater than 32 and less than 1024",
-		},
-		"size is big": {
-			fields: fields{
-				content: "test",
-				size:    1025,
-			},
-			want: "invalid size: 1025, must be greater than 32 and less than 1024",
-		},
-	}
-
-	for name, tt := range tests {
-		tt := tt
-
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			code := &QRCode{
-				Content: tt.fields.content,
-				Size:    tt.fields.size,
-			}
-
-			err := code.Validate()
-
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, tt.want)
-		})
-	}
-}
+const tooBigContent = `this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_
+this_content_is_too_big_this_content_is_too_big_this_content_is_too_big_`

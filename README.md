@@ -2,7 +2,8 @@
 [![codecov](https://codecov.io/gh/etilite/qr-coder/graph/badge.svg?token=A70ZRV50JV)](https://codecov.io/gh/etilite/qr-coder)
 
 Microservice to generate QR-codes in png format.
-Text content is encoded in UTF-8.
+
+By default, `qr-coder` adds to content `UTF-8 BOM` prefix for better unicode-compatibility with scanners.
 
 ## Usage
 ### Build project

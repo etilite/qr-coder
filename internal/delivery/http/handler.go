@@ -7,9 +7,15 @@ import (
 	"net/http"
 
 	"github.com/etilite/qr-coder/internal/coder"
+	"github.com/etilite/qr-coder/internal/model"
 )
 
 type QRCodeHandler struct {
+	encode func(code model.QRCode) ([]byte, error)
+}
+
+func NewQRCodeHandler() *QRCodeHandler {
+	return &QRCodeHandler{encode: coder.Encode}
 }
 
 func (h *QRCodeHandler) handle() http.HandlerFunc {
@@ -20,7 +26,7 @@ func (h *QRCodeHandler) handle() http.HandlerFunc {
 			}
 		}()
 
-		qrCode := coder.QRCode{}
+		qrCode := model.QRCode{}
 
 		if err := json.NewDecoder(r.Body).Decode(&qrCode); err != nil {
 			err = fmt.Errorf("failed to decode JSON: %w", err)
@@ -29,7 +35,14 @@ func (h *QRCodeHandler) handle() http.HandlerFunc {
 			return
 		}
 
-		image, err := qrCode.Generate()
+		if err := qrCode.Validate(); err != nil {
+			err = fmt.Errorf("failed to validate QR Code: %v", err)
+			log.Print(err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		image, err := h.encode(qrCode)
 		if err != nil {
 			err = fmt.Errorf("failed to generate QR-code: %w", err)
 			log.Print(err)
@@ -39,10 +52,7 @@ func (h *QRCodeHandler) handle() http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "image/png")
 		if _, err := w.Write(image); err != nil {
-			err = fmt.Errorf("failed to decode JSON: %w", err)
-			log.Print(err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			log.Print(fmt.Errorf("failed to write response: %w", err))
 		}
 	}
 }
