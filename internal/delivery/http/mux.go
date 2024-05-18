@@ -6,9 +6,9 @@ import (
 
 func newMux() *http.ServeMux {
 	mux := http.NewServeMux()
-	handler := &QRCodeHandler{}
+	handler := NewQRCodeHandler()
 
-	mux.Handle("/generate", handler.handle())
+	mux.Handle("POST /generate", handler.handle())
 
 	return mux
 }
