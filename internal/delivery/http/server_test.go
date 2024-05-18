@@ -14,7 +14,7 @@ func TestServer(t *testing.T) {
 
 	t.Run("success run and shutdown", func(t *testing.T) {
 		server := NewServer(":12345")
-		server.http = &mockHttpServer{}
+		server.http = newHttpServerMock(false, false)
 
 		ctx, cancel := context.WithTimeout(context.Background(), 32*time.Millisecond)
 		defer cancel()
@@ -26,9 +26,7 @@ func TestServer(t *testing.T) {
 
 	t.Run("error run", func(t *testing.T) {
 		server := NewServer(":12345")
-		server.http = &mockHttpServer{
-			listenErr: true,
-		}
+		server.http = newHttpServerMock(true, false)
 
 		err := server.Run(context.Background())
 
@@ -38,9 +36,7 @@ func TestServer(t *testing.T) {
 
 	t.Run("error shutdown", func(t *testing.T) {
 		server := NewServer(":12345")
-		server.http = &mockHttpServer{
-			shutdownErr: true,
-		}
+		server.http = newHttpServerMock(false, true)
 
 		ctx, cancel := context.WithTimeout(context.Background(), 32*time.Millisecond)
 		defer cancel()
@@ -51,6 +47,14 @@ func TestServer(t *testing.T) {
 		assert.ErrorContains(t, err, "shutdown error")
 	})
 
+}
+
+func newHttpServerMock(listenErr, shutdownErr bool) *mockHttpServer {
+	return &mockHttpServer{
+		ch:          make(chan bool),
+		listenErr:   listenErr,
+		shutdownErr: shutdownErr,
+	}
 }
 
 type mockHttpServer struct {
@@ -64,7 +68,6 @@ func (s *mockHttpServer) ListenAndServe() error {
 		return errors.New("listen error")
 	}
 
-	s.ch = make(chan bool)
 	<-s.ch
 
 	return nil
