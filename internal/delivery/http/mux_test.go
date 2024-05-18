@@ -12,10 +12,12 @@ import (
 func TestNewMux(t *testing.T) {
 	t.Parallel()
 	tests := map[string]struct {
-		path string
+		method string
+		path   string
 	}{
 		"generate": {
-			path: "/generate",
+			method: http.MethodPost,
+			path:   "/generate",
 		},
 	}
 	for name, tt := range tests {
@@ -27,7 +29,7 @@ func TestNewMux(t *testing.T) {
 			mux := newMux()
 
 			requestBody := strings.NewReader(`{"size": 32, "content": "test"}`)
-			request := httptest.NewRequest(http.MethodPost, tt.path, requestBody)
+			request := httptest.NewRequest(tt.method, tt.path, requestBody)
 			response := httptest.NewRecorder()
 
 			mux.ServeHTTP(response, request)
